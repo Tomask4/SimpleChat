@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to bottom, #4e54c8, #8f94fb);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        #chat-container {
+            width: 600px;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #welcome-message {
+            margin-bottom: 10px;
+            font-size: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .input-container {
+            margin-bottom: 10px;
+        }
+
+        .input-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #username-input {
+            width: calc(100% - 30px); /* Adjusted width */
+        }
+
+        #message-container {
+            max-height: 300px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+        }
+
+        #message-container p {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #f2f2f2;
+            border-radius: 10px;
+        }
+
+        #message-input-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #message-input {
+            flex: 1;
+            border-radius: 20px;
+        }
+
+        #send-button {
+            margin-left: 10px;
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background-color: #007bff;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #send-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="welcome-message">Welcome to the Simple Chat!</div>
+        <div class="input-container">
+            <input type="text" id="username-input" placeholder="Enter username (max 20 characters)...">
+        </div>
+        <div id="message-container"></div>
+        <div id="message-input-container" class="input-container">
+            <input type="text" id="message-input" placeholder="Type your message (max 500 characters)...">
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const usernameInput = document.getElementById("username-input");
+            const messageInput = document.getElementById("message-input");
+            const sendButton = document.getElementById("send-button");
+            const messageContainer = document.getElementById("message-container");
+
+            let username = "";
+
+            // Function to send message
+            function sendMessage(message) {
+                if (!username) {
+                    alert("Please enter a username.");
+                    return;
+                }
+
+                const messageElement = document.createElement("p");
+                messageElement.textContent = `${username}: ${message}`;
+                messageContainer.appendChild(messageElement);
+                messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to bottom
+
+                // Store message in localStorage
+                const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+                messages.push(`${username}: ${message}`);
+                if (messages.length > 100) {
+                    messages.shift(); // Remove the oldest message
+                    messageContainer.removeChild(messageContainer.firstChild); // Remove the oldest message from the UI
+                }
+                localStorage.setItem("chatMessages", JSON.stringify(messages));
+            }
+
+            // Event listener for send button
+            sendButton.addEventListener("click", function() {
+                const message = messageInput.value;
+                if (message.trim() !== "") {
+                    sendMessage(message);
+                    messageInput.value = "";
+                }
+            });
+
+            // Function to load chat history from localStorage
+            function loadChatHistory() {
+                const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+                messages.forEach(message => {
+                    const messageElement = document.createElement("p");
+                    messageElement.textContent = message;
+                    messageContainer.appendChild(messageElement);
+                });
+                messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to bottom
+            }
+
+            // Load chat history when the page is loaded
+            loadChatHistory();
+
+            // Event listener for username input
+            usernameInput.addEventListener("input", function() {
+                if (usernameInput.value.length > 20) {
+                    usernameInput.value = usernameInput.value.slice(0, 20);
+                }
+                username = usernameInput.value.trim();
+            });
+
+            // Event listener for message input
+            messageInput.addEventListener("input", function() {
+                if (messageInput.value.length > 500) {
+                    messageInput.value = messageInput.value.slice(0, 500);
+                }
+            });
+
+            // Event listener for Shift+Enter to send message
+            messageInput.addEventListener("keydown", function(event) {
+                if (event.shiftKey && event.keyCode === 13) {
+                    event.preventDefault();
+                    sendButton.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
