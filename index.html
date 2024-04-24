@@ -61,7 +61,6 @@
             padding: 10px;
             background-color: #f2f2f2;
             border-radius: 10px;
-            word-wrap: break-word; /* Ensure long words wrap to new line */
         }
 
         #message-input-container {
@@ -114,59 +113,50 @@
 
             let username = "";
 
-            // Function to display a message in the chat container
-            function displayMessage(message) {
-                const messageElement = document.createElement('p');
-                messageElement.textContent = message;
-                messageContainer.appendChild(messageElement);
-            }
-
-            // Function to send a message
+            // Function to send message
             function sendMessage(message) {
+                if (!username) {
+                    alert("Please enter a username.");
+                    return;
+                }
+
+                const messageElement = document.createElement("p");
+                messageElement.textContent = `${username}: ${message}`;
+                messageContainer.appendChild(messageElement);
+                messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to bottom
+
                 // Store message in localStorage
-                const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-                messages.push(message);
-                localStorage.setItem('chatMessages', JSON.stringify(messages));
-
-                // Display message in chat container
-                displayMessage(message);
+                const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+                messages.push(`${username}: ${message}`);
+                if (messages.length > 100) {
+                    messages.shift(); // Remove the oldest message
+                    messageContainer.removeChild(messageContainer.firstChild); // Remove the oldest message from the UI
+                }
+                localStorage.setItem("chatMessages", JSON.stringify(messages));
             }
 
-            // Function to retrieve and display existing messages from localStorage
-            function loadMessages() {
-                const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-                messages.forEach(message => {
-                    displayMessage(message);
-                });
-            }
-
-            // Function to periodically check for new messages in localStorage and update chat container
-            function checkForNewMessages() {
-                setInterval(() => {
-                    const messages = JSON.parse(localStorage.getItem('chatMessages')) || [];
-                    const latestMessageIndex = messageContainer.children.length - 1;
-
-                    // Display new messages
-                    for (let i = latestMessageIndex + 1; i < messages.length; i++) {
-                        displayMessage(messages[i]);
-                    }
-                }, 1000); // Adjust the interval as needed
-            }
-
-            // Event listener for send button click
-            sendButton.addEventListener('click', () => {
-                const message = messageInput.value.trim();
-                if (message !== '') {
+            // Event listener for send button
+            sendButton.addEventListener("click", function() {
+                const message = messageInput.value;
+                if (message.trim() !== "") {
                     sendMessage(message);
-                    messageInput.value = '';
+                    messageInput.value = "";
                 }
             });
 
-            // Load existing messages and start checking for new messages when the page loads
-            window.addEventListener('load', () => {
-                loadMessages();
-                checkForNewMessages();
-            });
+            // Function to load chat history from localStorage
+            function loadChatHistory() {
+                const messages = JSON.parse(localStorage.getItem("chatMessages")) || [];
+                messages.forEach(message => {
+                    const messageElement = document.createElement("p");
+                    messageElement.textContent = message;
+                    messageContainer.appendChild(messageElement);
+                });
+                messageContainer.scrollTop = messageContainer.scrollHeight; // Scroll to bottom
+            }
+
+            // Load chat history when the page is loaded
+            loadChatHistory();
 
             // Event listener for username input
             usernameInput.addEventListener("input", function() {
